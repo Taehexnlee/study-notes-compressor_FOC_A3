@@ -5,34 +5,12 @@
 #include "../include/crypto.h"
 #include "../include/fileio.h"
 
+#define MAX_INPUT 1024
+#define FILENAME "note.txt"
+#define KEY "secret"  
+
 int main(int argc, char* argv[]) 
 {
-    // Temporary test for encryption
-    char message[] = "hello world";
-    char key[] = "abc";
-
-    printf("Original: %s\n", message);
-
-    xor_encrypt(message, key);
-    printf("Encrypted: %s\n", message);
-
-    xor_decrypt(message, key);
-    printf("Decrypted: %s\n\n", message);
-
-    // Temporary test for compression
-    char text[] = "aaabbbbcc";
-    printf("Original (RLE): %s\n", text);
-
-    char* compressed = compress(text);
-    printf("Compressed: %s\n", compressed);
-
-    char* decompressed = decompress(compressed);
-    printf("Decompressed: %s\n\n", decompressed);
-
-    free(compressed);
-    free(decompressed);
-
-    // Actual CLI logic
     if (argc < 2) 
     {
         printf("Usage: ./notes_app [add | view]\n");
@@ -41,11 +19,61 @@ int main(int argc, char* argv[])
 
     if (strcmp(argv[1], "add") == 0) 
     {
-        // TODO: Prompt user for input → Compress → Encrypt → Save to file
-    } else if (strcmp(argv[1], "view") == 0) 
+        char input[MAX_INPUT];
+        printf("Enter your note: ");
+        fgets(input, MAX_INPUT, stdin);
+
+        // Remove newline from fgets
+        input[strcspn(input, "\n")] = 0;
+
+        // Compress the note
+        char* compressed = compress(input);
+        if (!compressed) {
+            fprintf(stderr, "Compression failed.\n");
+            return 1;
+        }
+
+        size_t compressed_len = strlen(compressed);
+
+        // Encrypt the compressed data
+        xor_encrypt(compressed, KEY, compressed_len);
+
+        // Save encrypted data to file
+        if (save_to_file(FILENAME, compressed, compressed_len) != 0) {
+            fprintf(stderr, "Failed to save note to file.\n");
+            free(compressed);
+            return 1;
+        }
+
+        printf("Note saved successfully.\n");
+        free(compressed);
+    } 
+    else if (strcmp(argv[1], "view") == 0) 
     {
-        // TODO: Read from file → Decrypt → Decompress → Display
-    } else 
+        size_t encrypted_len = 0;
+        char* encrypted = load_from_file(FILENAME, &encrypted_len);
+        if (!encrypted) {
+            fprintf(stderr, "Failed to read file.\n");
+            return 1;
+        }
+
+        // Decrypt the data
+        xor_decrypt(encrypted, KEY, encrypted_len);
+
+        // Decompress the decrypted data
+        char* decompressed = decompress(encrypted);
+        if (!decompressed) {
+            fprintf(stderr, "Decompression failed.\n");
+            free(encrypted);
+            return 1;
+        }
+
+        printf("Your saved note: %s\n", decompressed);
+
+        free(encrypted);
+        free(decompressed);
+    } 
+    else 
     {
         printf("Invalid command. Use 'add' or 'view'\n");
     }
