@@ -1,0 +1,22 @@
+# Ignore object and binary files
+*.o
+*.out
+*.exe
+
+# Editor & OS files
+.DS_Store
+*.swp
+*~
+
+# Build directory
+build/
+bin/
+
+# Visual Studio Code settings
+.vscode/
+
+# Backup files
+*.bak
+
+# Logs
+*.log
