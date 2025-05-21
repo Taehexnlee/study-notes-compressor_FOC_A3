@@ -2,51 +2,79 @@
 
 **Group:** Group08  
 **Lab:** Friday 9:30am  
-**Author:** Shawn(Tae Heon Lee) - 25133962
+**Author:** Shawn (Tae Heon Lee) - 25133962
+
+---
 
 ## Compile Instructions
 
-To compile the program, use the following command in terminal:
+To compile the program in normal mode:
 
-```bash
 make clean && make
-```
+
+To compile with **debug mode** enabled:
+
+make debug
+
+---
 
 ## How to Run
 
-The program supports three commands:
+You can use the following commands:
 
-- `./notes_app add` – Add a new feedback entry  
-- `./notes_app view` – View all saved feedback  
-- `./notes_app delete <id>` – Delete feedback by its ID  
-- `./notes_app search <id>` – search feedback by its ID  
+./notes_app add         # Add a new feedback entry
+./notes_app view        # View all feedback entries
+./notes_app delete <id> # Delete a feedback entry by ID
+./notes_app search <id> # Search for a feedback entry by ID
 
-Example:
-```bash
+
+**Example:**
+
 ./notes_app add
 ./notes_app view
 ./notes_app delete 2
 ./notes_app search 1
-```
+
+
+---
 
 ## Features
 
-- Feedback entries support:
-  - XOR-based encryption for secure storage
-  - Run-Length Encoding (RLE) for compression
-- Data is saved to a binary file: `feedback.dat`
-- Command-line interface:
-  - `add` – Add new feedback
-  - `view` – View all feedback entries
-  - `delete <id>` – Delete a feedback entry by its ID
-  - `search <keyword>` – Search feedback entries by keyword (subject, student name, or feedback content)
-- Linked list used to manage dynamic feedback data
-- Modular design using multiple `.c` and `.h` files
-- Makefile included for easy compilation
+	•	Linked list used for dynamic feedback storage
+	•	XOR encryption to protect saved data
+	•	Run-Length Encoding (RLE) for compression
+	•	Search feedback by ID with the search command
+	•	Persistent file storage in feedback.dat
+	•	Command-line interface using runtime arguments
+	•	Modular structure using separate .c and .h files
+	•	Debug mode enabled using make debug and conditional compilation
 
+---
+
+## File Handling and Security
+
+- Feedback is saved in a binary file (`feedback.dat`)
+- Stored data is:
+  - Escaped (to handle special characters like `:`)
+  - Compressed using Run-Length Encoding (RLE)
+  - Encrypted using a simple XOR-based method
+- All reading and writing is done in binary mode
+
+---
 
 ## Notes
 
-- Uses only standard C libraries: `<stdio.h>`, `<stdlib.h>`, `<string.h>`
-- Implements custom C library structure with `.h` files
-- Supports persistent data between runs using encrypted + compressed storage
+- Uses **only standard libraries**: `<stdio.h>`, `<stdlib.h>`, `<string.h>`
+- No external libraries or frameworks used
+- Compatible with **GCC on Unix/macOS/Linux**
+- Written in **pure C (C99)**
+
+---
+
+This program is submission-ready and implements:
+- A modular, clean codebase
+- Compression and encryption algorithms
+- Robust file I/O
+- Debug logging using `#ifdef DEBUG`
+
+> Designed and implemented by Tae Heon Lee for UTS C Programming Project (48430)

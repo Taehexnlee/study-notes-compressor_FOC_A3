@@ -1,10 +1,17 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
 #include "../include/rle.h"
 #include "../include/crypto.h"
 #include "../include/fileio.h"
 #include "../include/feedback.h"
+
+#ifdef DEBUG
+#define DEBUG_PRINT(...) printf("[DEBUG] " __VA_ARGS__)
+#else
+#define DEBUG_PRINT(...)
+#endif
 
 #define MAX_INPUT 2048
 #define FILE_NAME "feedback.dat"
@@ -28,11 +35,13 @@ int main(int argc, char* argv[])
     char* encrypted = loadFromFile(FILE_NAME, &fileLen);
     if (encrypted) 
     {
+        DEBUG_PRINT("Encrypted data loaded from file (length: %zu)\n", fileLen);
         decryptData(encrypted, KEY, fileLen); // Decrypt the data
         size_t textLen; 
         char* decompressed = decompress(encrypted, &textLen); // Decompress the data
         if (decompressed) 
         {
+            DEBUG_PRINT("Data decompressed (length: %zu)\n", textLen);
             unescapeText(decompressed); // Restore original special characters
             head = deserializeFeedback(decompressed, &nextId); // Deserialize to linked list
             free(decompressed);
@@ -102,13 +111,16 @@ int main(int argc, char* argv[])
     char* plainText = serializeFeedback(head, &textLen);
     if (plainText) 
     {
+        DEBUG_PRINT("Serialized feedback text (length: %zu)\n", textLen);
         escapeText(plainText); // Escape special characters before compression
         size_t compressedLen;
         char* compressed = compress(plainText, &compressedLen);
         if (compressed) 
         {
+            DEBUG_PRINT("Compressed text (length: %zu)\n", compressedLen);
             encryptData(compressed, KEY, compressedLen); // Encrypt compressed data
             saveToFile(FILE_NAME, compressed, compressedLen); // Save to file
+            DEBUG_PRINT("Encrypted data saved to file\n");
             free(compressed);
         }
         free(plainText);
