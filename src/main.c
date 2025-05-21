@@ -4,26 +4,47 @@
 #include "../include/rle.h"
 #include "../include/crypto.h"
 #include "../include/fileio.h"
+#include "../include/feedback.h"
 
 #define MAX_INPUT 2048
-#define FILE_NAME "note.txt"
+#define FILE_NAME "feedback.dat"
 #define KEY "secret"
 
+// Main function to handle add, view, delete commands for feedback entries
 int main(int argc, char* argv[]) 
 {
-    // Check if command line argument is provided
+    // Check if a command is provided
     if (argc < 2) 
     {
-        printf("Usage: ./notes_app [add | view]\n");
+        printf("Usage: ./note_app [add | view | delete <id>]\n");
         return 1;
     }
 
-    // ADD MODE: Save a new encrypted and compressed note
+    Feedback* head = NULL;
+    int nextId = 1;
+
+    // Load encrypted and compressed data from file
+    size_t fileLen;
+    char* encrypted = loadFromFile(FILE_NAME, &fileLen);
+    if (encrypted) 
+    {
+        decryptData(encrypted, KEY, fileLen); // Decrypt the data
+        size_t textLen; 
+        char* decompressed = decompress(encrypted, &textLen); // Decompress the data
+        if (decompressed) 
+        {
+            unescapeText(decompressed); // Restore original special characters
+            head = deserializeFeedback(decompressed, &nextId); // Deserialize to linked list
+            free(decompressed);
+        }
+        free(encrypted);
+    }
+
+    // ADD command: collect and add new feedback
     if (strcmp(argv[1], "add") == 0) 
     {
-        char name[100], studentId[50], subject[100], note[MAX_INPUT];
+        char name[100], studentId[50], subject[100], feedbackText[MAX_INPUT];
 
-        // Get user input
         printf("Enter your name: ");
         fgets(name, sizeof(name), stdin);
         name[strcspn(name, "\n")] = 0;
@@ -36,82 +57,64 @@ int main(int argc, char* argv[])
         fgets(subject, sizeof(subject), stdin);
         subject[strcspn(subject, "\n")] = 0;
 
-        printf("Enter your note: ");
-        fgets(note, sizeof(note), stdin);
-        note[strcspn(note, "\n")] = 0;
+        printf("Enter your feedback: ");
+        fgets(feedbackText, sizeof(feedbackText), stdin);
+        feedbackText[strcspn(feedbackText, "\n")] = 0;
 
-        // Combine all input into one formatted string
-        char fullText[MAX_INPUT * 2];
-        snprintf(fullText, sizeof(fullText),
-                 "Name: %s\nStudent ID: %s\nSubject: %s\nNote: %s",
-                 name, studentId, subject, note);
-
-        // Replace reserved characters before compression
-        escapeText(fullText);
-
-        // Compress the text
-        size_t compressedLength;
-        char* compressed = compress(fullText, &compressedLength);
-        if (!compressed) 
-        {
-            fprintf(stderr, "Compression failed.\n");
-            return 1;
-        }
-
-        // Encrypt the compressed data
-        encryptData(compressed, KEY, compressedLength);
-
-        // Save encrypted data to file
-        if (saveToFile(FILE_NAME, compressed, compressedLength) != 0) 
-        {
-            fprintf(stderr, "Failed to save note to file.\n");
-            free(compressed);
-            return 1;
-        }
-
-        printf("Note saved successfully.\n");
-        free(compressed);
-    } 
-    // VIEW MODE: Load, decrypt, decompress and display the saved note
+        head = addFeedback(head, name, studentId, subject, feedbackText, &nextId);
+        printf("Feedback saved (ID: %d).\n", nextId - 1);
+    }
+    // VIEW command: display all feedback
     else if (strcmp(argv[1], "view") == 0) 
     {
-        // Load encrypted data from file
-        size_t encryptedLength;
-        char* encrypted = loadFromFile(FILE_NAME, &encryptedLength);
-        if (!encrypted) 
-        {
-            fprintf(stderr, "Failed to read file.\n");
-            return 1;
-        }
-
-        // Decrypt the data
-        decryptData(encrypted, KEY, encryptedLength);
-        
-        // Decompress the decrypted data
-        size_t decompressedLength;
-        char* decompressed = decompress(encrypted, &decompressedLength);
-        if (!decompressed) 
-        {
-            fprintf(stderr, "Decompression failed.\n");
-            free(encrypted);
-            return 1;
-        }
-
-        // Restore original characters (e.g., [COLON] → :)
-        unescapeText(decompressed);
-        
-        // Final output
-        printf("Your saved note:\n%s\n", decompressed);
-
-        // Clean up
-        free(encrypted);
-        free(decompressed);
+        printAllFeedback(head);
     }
+    // DELETE command: delete a feedback by ID
+    else if (strcmp(argv[1], "delete") == 0 && argc == 3) 
+    {
+        int id = atoi(argv[2]);
+        head = deleteFeedbackById(head, id);
+    }
+    else if (strcmp(argv[1], "search") == 0 && argc == 3) 
+    {
+        int id = atoi(argv[2]);
+        Feedback* found = findFeedbackById(head, id);
+        if (found) 
+        {
+            printf("ID: %d\n", found->id);
+            printf("Name: %s\n", found->studentName);
+            printf("Student ID: %s\n", found->studentId);
+            printf("Subject: %s\n", found->subject);
+            printf("Feedback: %s\n", found->feedback);
+        } else 
+        {
+            printf("Feedback with ID %d not found.\n", id);
+        }
+    }
+    // Invalid command handling
     else 
     {
-        // Invalid command
-        printf("Invalid command. Use 'add' or 'view'\n");
+        printf("Invalid command. Usage: ./note_app [add | view | delete <id>]\n");
     }
 
+    // Save updated feedback data back to file (encrypted and compressed)
+    size_t textLen;
+    char* plainText = serializeFeedback(head, &textLen);
+    if (plainText) 
+    {
+        escapeText(plainText); // Escape special characters before compression
+        size_t compressedLen;
+        char* compressed = compress(plainText, &compressedLen);
+        if (compressed) 
+        {
+            encryptData(compressed, KEY, compressedLen); // Encrypt compressed data
+            saveToFile(FILE_NAME, compressed, compressedLen); // Save to file
+            free(compressed);
+        }
+        free(plainText);
+    }
+
+    // Clean up memory
+    freeFeedbackList(head);
     return 0;
 }

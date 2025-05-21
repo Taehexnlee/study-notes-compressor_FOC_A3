@@ -5,11 +5,12 @@
 
 // Save data to a file in binary write mode.
 // Returns 0 on success, 1 on failure.
-int saveToFile(const char* fileName, const char* data, size_t len) {
+int saveToFile(const char* fileName, const char* data, size_t len) 
+{
     FILE* fp = fopen(fileName, "wb");
     // Failed to open file
     if (!fp) return 1;
-    // Write `len` bytes from `data`
+    // Write len bytes from data
     fwrite(data, 1, len, fp);
     fclose(fp);
     return 0;
@@ -18,7 +19,8 @@ int saveToFile(const char* fileName, const char* data, size_t len) {
 // Load data from a file in binary read mode.
 // Returns a dynamically allocated buffer containing the file contents.
 // The length of the data is stored in `lenOut`.
-char* loadFromFile(const char* fileName, size_t* lenOut) {
+char* loadFromFile(const char* fileName, size_t* lenOut) 
+{
     FILE* fp = fopen(fileName, "rb");
     // Failed to open file
     if (!fp) return NULL;
@@ -32,7 +34,8 @@ char* loadFromFile(const char* fileName, size_t* lenOut) {
 
     // Allocate memory (+1 for null terminator)
     char* buffer = malloc(len + 1);  
-    if (!buffer) {
+    if (!buffer) 
+    {
         fclose(fp);
         return NULL;
     }
