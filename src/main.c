@@ -17,6 +17,32 @@
 #define FILE_NAME "feedback.dat"
 #define KEY "secret"
 
+// Check if a string is empty
+int isEmpty(const char* str) 
+{
+    return strlen(str) == 0;
+}
+
+// Check if a string contains any digits (used for name validation)
+int containsDigit(const char* str) 
+{
+    for (size_t i = 0; i < strlen(str); ++i) 
+    {
+        if (str[i] >= '0' && str[i] <= '9') return 1;
+    }
+    return 0;
+}
+
+// Check if a string contains only digits (used for student ID validation)
+int isAllDigits(const char* str) 
+{
+    for (size_t i = 0; i < strlen(str); ++i) 
+    {
+        if (str[i] < '0' || str[i] > '9') return 0;
+    }
+    return 1;
+}
+
 // Main function to handle add, view, delete commands for feedback entries
 int main(int argc, char* argv[]) 
 {
@@ -58,17 +84,37 @@ int main(int argc, char* argv[])
         fgets(name, sizeof(name), stdin);
         name[strcspn(name, "\n")] = 0;
 
+        if (isEmpty(name) || containsDigit(name)) {
+            printf("Invalid name. Must not be empty or contain digits.\n");
+            return 1;
+        }
+
         printf("Enter your student ID: ");
         fgets(studentId, sizeof(studentId), stdin);
         studentId[strcspn(studentId, "\n")] = 0;
+
+        if (isEmpty(studentId) || !isAllDigits(studentId)) {
+            printf("Invalid student ID. Must contain only digits.\n");
+            return 1;
+        }
 
         printf("Enter subject name: ");
         fgets(subject, sizeof(subject), stdin);
         subject[strcspn(subject, "\n")] = 0;
 
+        if (isEmpty(subject)) {
+            printf("Subject name cannot be empty.\n");
+            return 1;
+        }
+
         printf("Enter your feedback: ");
         fgets(feedbackText, sizeof(feedbackText), stdin);
         feedbackText[strcspn(feedbackText, "\n")] = 0;
+
+        if (isEmpty(feedbackText)) {
+            printf("Feedback cannot be empty.\n");
+            return 1;
+        }
 
         head = addFeedback(head, name, studentId, subject, feedbackText, &nextId);
         printf("Feedback saved (ID: %d).\n", nextId - 1);
