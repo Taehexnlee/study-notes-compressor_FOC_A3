@@ -113,7 +113,7 @@ char* decompress(const char* input, size_t* outLen)
             // Safety check: invalid count or overflow
             if (count <= 0 || outIdx + count > len * 10) 
             {
-                fprintf(stderr, "Invalid RLE format or corrupted count\n");
+                fprintf(stderr, "RLE decompression error: unexpected format or count\n");
                 free(output);
                 return NULL;
             }

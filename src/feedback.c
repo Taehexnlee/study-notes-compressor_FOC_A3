@@ -4,6 +4,7 @@
 #include "../include/feedback.h"
 
 // Adds a new feedback node to the end of the linked list
+// Returns the head of the updated list.
 Feedback* addFeedback(Feedback* head, const char* studentName, const char* studentId, const char* subject, const char* feedbackText, int* nextId) 
 {
     Feedback* newNode = (Feedback*)malloc(sizeof(Feedback));
@@ -28,8 +29,9 @@ Feedback* addFeedback(Feedback* head, const char* studentName, const char* stude
 }
 
 // Prints all feedback entries in the linked list
+// If the list is empty, prints "No feedback found."
 void printAllFeedback(const Feedback* head) 
-{
+{   
     if (head == NULL) 
     {
         printf("No feedback found.\n");
@@ -60,6 +62,7 @@ void freeFeedbackList(Feedback* head)
 }
 
 // Deletes a feedback entry by ID, if found
+// Returns the new head of the list
 Feedback* deleteFeedbackById(Feedback* head, int id) 
 {
     if (!head) return NULL;
@@ -93,6 +96,7 @@ Feedback* deleteFeedbackById(Feedback* head, int id)
 }
 
 // Finds a feedback entry by its ID
+// Returns pointer to the matching node, or NULL if not found.
 Feedback* findFeedbackById(Feedback* head, int id) 
 {
     Feedback* current = head;
@@ -104,10 +108,12 @@ Feedback* findFeedbackById(Feedback* head, int id)
     return NULL;
 }
 
-// Serializes the linked list to a text buffer formatted for saving to file
+// Converts the entire linked list into a single formatted string.
+// Returns a dynamically allocated string (caller must free).
 char* serializeFeedback(const Feedback* head, size_t* outLength) 
 {
     const Feedback* current = head;
+    // Initial buffer size, will expand dynamically
     size_t totalLen = 1024;
     char* buffer = malloc(totalLen);
     if (!buffer) return NULL;
@@ -148,7 +154,8 @@ char* serializeFeedback(const Feedback* head, size_t* outLength)
     return buffer;
 }
 
-// Deserializes a text buffer back into a linked list and sets the nextId value
+// Parses a serialized feedback string and reconstructs the linked list.
+// Also updates the next ID to maintain uniqueness.
 Feedback* deserializeFeedback(const char* data, int* nextIdOut) 
 {
     Feedback* head = NULL;

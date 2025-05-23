@@ -31,6 +31,11 @@ char* loadFromFile(const char* fileName, size_t* lenOut)
     long len = ftell(fp);          
     // Move back to start
     rewind(fp);                    
+    
+    if (len <= 0) {
+        fclose(fp);
+        return NULL;
+    }
 
     // Allocate memory (+1 for null terminator)
     char* buffer = malloc(len + 1);  

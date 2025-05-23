@@ -23,7 +23,7 @@ int main(int argc, char* argv[])
     // Check if a command is provided
     if (argc < 2) 
     {
-        printf("Usage: ./note_app [add | view | delete <id>]\n");
+        printf("Usage: ./note_app [add | view | delete <id> | search <id>]\n");
         return 1;
     }
 
